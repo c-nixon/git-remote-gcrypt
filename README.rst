@@ -95,6 +95,28 @@ How to set up a remote for two participants::
     git config remote.cryptremote.gcrypt-participants "KEY1 KEY2"
     git push cryptremote master
 
+How to use with github:
+
+    git remote add cryptremote gcrypt::git@github.com:mygithub/myrepo.git
+
+do a git config for the following keys:
+
+    remote.cryptremote.gcrypt-participants XXXXXXXX
+    remote.cryptremote.gcrypt-signingkey XXXXXXXX
+    remote.cryptremote.gcrypt.publish-participants true
+
+    git push --set-upstream cryptremote master
+
+
+How to clone:
+
+    mkdir myrepo
+    cd myrepo
+    git remote add cryptremote gcrypt::git@github.com:mygithub/myrepo.git
+    git pull crypremote
+
+
+
 How to use a git backend::
 
     # notice that the target git repo must already exist and its
