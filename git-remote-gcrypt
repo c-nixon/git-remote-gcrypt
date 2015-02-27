@@ -21,6 +21,8 @@ set -e # errexit
 set -f # noglob
 set -C # noclobber
 
+Verbose=1
+
 export GITCEPTION="${GITCEPTION:-}+" # Reuse $Gref except when stacked
 Gref="refs/gcrypt/gitception$GITCEPTION"
 Gref_rbranch="refs/heads/master"
@@ -57,7 +59,12 @@ EOF
 xecho() { xfeed "$*" cat; }
 xecho_n() { xecho "$@" | tr -d \\n ; } # kill newlines
 echo_git() { xecho "$@" ; }  # Code clarity
-echo_info() { xecho "gcrypt:" "$@" >&2; }
+echo_info() {
+	if [ $Verbose -eq 1 ]
+	then
+		xecho "gcrypt:" "$@" >&2;
+	fi
+}
 echo_die() { echo_info "$@" ; exit 1; }
 
 isnull() { case "$1" in "") return 0;; *) return 1;; esac; }
@@ -407,10 +414,21 @@ rungpg()
 	# gpg will fail to run when there is no controlling tty,
 	# due to trying to print messages to it, even if a gpg agent is set
 	# up. --no-tty fixes this.
-	if [ "x$GPG_AGENT_INFO" != "x" ]; then
-		gpg --no-tty "$@"
+	if [ $Verbose -eq 1 ]
+	then
+		if [ "x$GPG_AGENT_INFO" != "x" ];
+		then
+			gpg --no-tty "$@"
+		else
+			gpg "$@"
+		fi
 	else
-		gpg "$@"
+		if [ "x$GPG_AGENT_INFO" != "x" ];
+		then
+			gpg --no-tty "$@" 2> /dev/null
+		else
+			gpg "$@" 2> /dev/null
+		fi
 	fi
 }
 
@@ -853,7 +871,10 @@ setup()
 
 	trap cleanup_tmpfiles EXIT
 	trap 'exit 1' 1 2 3 15
-
+	if [ "$(git config --get 'gcrypt.verbose')" = false ]
+	then
+		Verbose=0;
+	fi
 	echo_info "Development version -- Repository format MAY CHANGE"
 }
 
