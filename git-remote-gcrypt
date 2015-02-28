@@ -21,7 +21,7 @@ set -e # errexit
 set -f # noglob
 set -C # noclobber
 
-Verbose=1
+Verbose=0
 
 export GITCEPTION="${GITCEPTION:-}+" # Reuse $Gref except when stacked
 Gref="refs/gcrypt/gitception$GITCEPTION"
@@ -834,9 +834,9 @@ setup()
 
 	trap cleanup_tmpfiles EXIT
 	trap 'exit 1' 1 2 3 15
-	if [ "$(git config --get 'gcrypt.verbose')" = false ]
+	if [ "$(git config --get 'gcrypt.verbose')" = true ]
 	then
-		Verbose=0;
+		Verbose=1;
 	fi
 	echo_info "Development version -- Repository format MAY CHANGE"
 }
