@@ -264,12 +264,25 @@ PUT_FINAL()
 # Put directory for repo $1
 PUTREPO()
 {
+	local repo_root=
+	local repo_host=
 	if isurl sftp "$1"
 	then
 		:
 	elif isurl rsync "$1"
 	then
-		rsync -q -r --exclude='*' "$Localdir/" "${1#rsync://}" >&2
+		# get the repo path from the url
+		repo_root=${1#rsync://}; repo_root=${repo_root##*:};
+		# get the hostname from the url
+		repo_host=${1#rsync://}; repo_host=${repo_host%%:*}
+		if iseq $repo_root $repo_host
+		then
+			# this is a local rsync, no need to ssh
+			mkdir -p "$repo_root"
+		else
+			# create the repo folder on the remote host
+			ssh "$repo_host" mkdir -p "$repo_root"
+		fi
 	elif islocalrepo "$1"
 	then
 		mkdir -p "$1"
