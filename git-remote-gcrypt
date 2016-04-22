@@ -32,6 +32,7 @@ Manifestfile=91bd0c092128cf2e60e1a608c31e92caf1f9c1595f83f2890ef17c0e4881aa0a
 Hex40="[a-f0-9]"
 Hex40=$Hex40$Hex40$Hex40$Hex40$Hex40$Hex40$Hex40$Hex40
 Hex40=$Hex40$Hex40$Hex40$Hex40$Hex40 # Match SHA-1 hexdigest
+GPG="$(git config --get "gpg.program" '.+' || echo gpg)"
 
 Did_find_repo=  # yes for connected, no for no repo
 Localdir="${GIT_DIR:=.git}/remote-gcrypt"
@@ -381,16 +382,16 @@ rungpg()
 	then
 		if [ "x$GPG_AGENT_INFO" != "x" ];
 		then
-			gpg --no-tty "$@"
+			${GPG} --no-tty "$@"
 		else
-			gpg "$@"
+			${GPG} "$@"
 		fi
 	else
 		if [ "x$GPG_AGENT_INFO" != "x" ];
 		then
-			gpg --no-tty "$@" 2> /dev/null
+			${GPG} --no-tty "$@" 2> /dev/null
 		else
-			gpg "$@" 2> /dev/null
+			${GPG} "$@" 2> /dev/null
 		fi
 	fi
 }
@@ -523,7 +524,12 @@ ensure_connected()
 	tmp_manifest="$Tempdir/maniF"
 	GET "$URL" "$Manifestfile" "$tmp_manifest" 2>/dev/null || {
 		echo_info "Repository not found: $URL"
-		return 0
+		if ! isnull "$Repoid"; then
+			echo_info "..but repository ID is set. Aborting."
+			return 1
+		else
+			return 0
+		fi
 	}
 
 	Did_find_repo=yes
